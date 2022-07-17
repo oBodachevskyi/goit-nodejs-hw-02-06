@@ -16,14 +16,21 @@ const contactSchema = Schema({
       favorite: {
         type: Boolean,
         default: false,
+      },      
+        owner: {
+          type: Schema.Types.ObjectId,
+          ref: "user",
+          required: true
       },
+      
 }, {versionKey: false, timestamps: true}); 
 
 const joiSchema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string().required()
-    .email({ minDomainSegments: 2, tlds: { allow: ['com', 'net'] } }),
+    .email({ minDomainSegments: 2 }),
     phone: Joi.string().required(),
+    favorite: Joi.boolean()
 });
 
 const favoriteJoiSchema = Joi.object({
