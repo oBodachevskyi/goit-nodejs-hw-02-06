@@ -1,6 +1,7 @@
 const {Schema, model} =require("mongoose");
 const Joi = require("joi");
-const { boolean } = require("joi");
+const { boolean, any } = require("joi");
+
 
 const contactSchema = Schema({
     name: {
@@ -13,10 +14,10 @@ const contactSchema = Schema({
       phone: {
         type: String,
       },
-      favorite: {
+       favorite: {
         type: Boolean,
         default: false,
-      },      
+      } ,      
         owner: {
           type: Schema.Types.ObjectId,
           ref: "user",
@@ -30,7 +31,7 @@ const joiSchema = Joi.object({
     email: Joi.string().required()
     .email({ minDomainSegments: 2 }),
     phone: Joi.string().required(),
-    favorite: Joi.boolean()
+    favorite: Joi.any()
 });
 
 const favoriteJoiSchema = Joi.object({
