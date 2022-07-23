@@ -1,6 +1,7 @@
 const {Unauthorized} = require("http-errors");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
+const { createError } = require("../../helpers");
 
 const {User} = require("../../models");
 
@@ -9,14 +10,17 @@ const {SECRET_KEY} = process.env;
 const login = async(req,res) => {
     const {email, password} = req.body;
     const user = await User.findOne({email});
-    console.log(user)
     if(!user){
-        throw new Unauthorized(`Email ${email} not found`);
+        throw createError(401, `Email ${email} not found`);
+    }
+    if (!user.verify) {
+        throw createError(401, "Email ${email} not verify")
     }
     const passCompare = bcrypt.compareSync(password, user.password);
     if(!passCompare){
-        throw new Unauthorized("Password wrong");
+        throw new createError(401, "Password wrong");
     }
+   
     const payload = {
         id: user._id
     };
