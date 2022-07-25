@@ -1,6 +1,7 @@
-const {Conflict} = require("http-errors");
 const bcrypt = require("bcryptjs");
 const gravatar = require("gravatar");
+const idGenerate = require('bson-objectid');
+const { createError, sendMail } = require("../../helpers");
 
 const {User} = require("../../models");
 
@@ -8,29 +9,27 @@ const signup = async(req,res) => {
     const {name, email, password} = req.body;
     const user = await User.findOne({email});
     if(user){
-        throw new Conflict(`User with ${email} already exist`)
+        throw createError(409, "Email in use")
     }
     const avatarURL = gravatar.url(email);
-    newUser = {
-        name, 
-        email,
-        setPassword(password){
-            this.password = bcrypt.hashSync(password, bcrypt.genSaltSync(10))
-        },
-        avatarURL
+    const verificationToken = idGenerate()
+    const mail = {
+        to: email,
+        subject: "Подтверждение регистрации на сайте",
+        html: `<a target="_blank" href="http://localhost:4000/api/auth/verify/${verificationToken}">
+            Нажмите для подтверждения Email
+        </a>`
     }
     const hashPassword = bcrypt.hashSync(password, bcrypt.genSaltSync(10));
-       const result = await User.create({name, email, password: hashPassword});
+    const result = await User.create({...req.body, password: hashPassword, avatarURL, verificationToken});
     
     res.status(201).json({
-        status: "success",
-        code: 201,
         user: {
-                email,
-                subscription: result.subscription,
-                avatarURL,
+            email: result.email,
+            subscription: result.subscription,
         }
-    });
+    })
+    await sendMail(mail)
 }
 
 module.exports = signup;
